@@ -7,4 +7,5 @@
     <string name="High">High 80º</string>
     <string name="Humidity">Humidity 100%</string>
     <string name="Pressure">Pressure 1023 hPa</string>
+    <string name="Forecast">Forecast</string>
 </resources>

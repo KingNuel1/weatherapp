@@ -29,6 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.ui.theme.WeatherappTheme
+import androidx.compose.material3.TextButton
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 
 class MainActivity : ComponentActivity() {
@@ -41,13 +46,20 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    WeatherApp()
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "WeatherScreen") {
+                        composable("WeatherScreen") {
+                            WeatherApp(navController)
+                        }
+                        composable("ForecastScreen") {
+                            ForecastScreen(navController)
+                        }
+                    }
                 }
             }
         }
     }
 }
-
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
@@ -57,11 +69,9 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun WeatherApp(){
+fun WeatherApp(navController: NavController){
     Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-        .fillMaxWidth(),
+        .fillMaxSize(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
@@ -69,16 +79,16 @@ fun WeatherApp(){
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.LightGray)
-                .padding(16.dp)
+
         ) {
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterStart)
+                modifier = Modifier.align(Alignment.CenterStart).padding(10.dp)
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.location),
             style = MaterialTheme.typography.bodyMedium,
@@ -89,19 +99,21 @@ fun WeatherApp(){
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center){
             Column(verticalArrangement = Arrangement.Center,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).padding(10.dp)
             ) {
                 Text(
                     text = stringResource(R.string.temperature),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 80.sp
+                    fontSize = 80.sp,
+                    modifier = Modifier.padding(start = 10.dp)
                 )
                 Spacer(modifier = Modifier.height(1.dp))
                 Text(
                     text = stringResource(R.string.feels_like),
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 15.sp
+                    fontSize = 15.sp,
+                    modifier = Modifier.padding(start = 10.dp)
                 )
             }
             Spacer(modifier = Modifier.height(30.dp))
@@ -113,30 +125,48 @@ fun WeatherApp(){
                 )
             }
         }
-        Spacer(modifier = Modifier.height(35.dp))
+        Spacer(modifier = Modifier.height(30.dp))
         Text(
             text = stringResource(R.string.Low),
             style = MaterialTheme.typography.bodySmall,
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            modifier = Modifier.padding(start = 10.dp)
         )
         Text(
             text = stringResource(R.string.High),
             style = MaterialTheme.typography.bodySmall,
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            modifier = Modifier.padding(start = 10.dp)
         )
         Text(
             text = stringResource(R.string.Humidity),
             style = MaterialTheme.typography.bodySmall,
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            modifier = Modifier.padding(start = 10.dp)
         )
         Text(
             text = stringResource(R.string.Pressure),
             style = MaterialTheme.typography.bodySmall,
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            modifier = Modifier.padding(start =10.dp)
         )
+        Spacer(modifier = Modifier.height(35.dp))
+
+        Surface(
+            color = Color.LightGray,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            TextButton(
+                onClick = { navController.navigate("ForecastScreen") }
+            ) {
+                Text(
+                    text = "Forecast",
+                    fontSize = 30.sp
+                )
+            }
+        }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
