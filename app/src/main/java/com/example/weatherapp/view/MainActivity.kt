@@ -179,7 +179,7 @@ fun CurrentWeather(navController : NavController, viewModel: CurrentConditionsVi
 }
 @Composable
 fun WeatherConditionIcon( url: String?) {
-    AsyncImage(model = url, contentDescription = "", modifier = Modifier.fillMaxWidth())
+    AsyncImage(model = url, contentDescription = "", modifier = Modifier.size(80.dp))
 }
 //@Preview(showBackground = true)
 //@Composable
