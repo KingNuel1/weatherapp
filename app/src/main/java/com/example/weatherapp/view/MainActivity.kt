@@ -4,9 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Arrangement.Absolute.Center
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,9 +15,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,7 +39,7 @@ import com.example.weatherapp.ui.theme.WeatherappTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -42,7 +47,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.weatherapp.R
-import com.example.weatherapp.models.Forecast
 import com.example.weatherapp.viewModels.CurrentConditionsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -63,8 +67,9 @@ class MainActivity : ComponentActivity() {
                         composable("CurrentConditions") {
                             CurrentWeather(navController)
                         }
-                        composable("ForecastScreen") {
-                            ForecastList()
+                        composable("ForecastScreen/{zip}") {
+                            val zip = it.arguments?.getString("zip")
+                            ForecastList(zip = zip)
                         }
                     }
                 }
@@ -101,8 +106,9 @@ fun CurrentWeather(navController : NavController, viewModel: CurrentConditionsVi
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
+        CurrentZipCode(viewModel)
         Text(
-            text = "${currentWeather.value?.location}" ?: "NoWhere",
+            text = "${currentWeather.value?.location}" ?: "NoLocation",
             style = MaterialTheme.typography.bodyMedium,
             fontSize = 18.sp,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -133,6 +139,7 @@ fun CurrentWeather(navController : NavController, viewModel: CurrentConditionsVi
             Spacer(modifier = Modifier.height(30.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 WeatherConditionIcon(url = currentWeather.value?.weatherIconUrl)
+
             }
         }
         Spacer(modifier = Modifier.height(30.dp))
@@ -167,7 +174,9 @@ fun CurrentWeather(navController : NavController, viewModel: CurrentConditionsVi
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             TextButton(
-                    onClick = { navController.navigate("ForecastScreen") }
+                onClick = {
+                    val navString = "ForecastScreen/" + viewModel.userZip.value.toString()
+                    navController.navigate(route = navString)}
             ) {
                 Text(
                     text = stringResource(R.string.Forecast),
@@ -179,12 +188,78 @@ fun CurrentWeather(navController : NavController, viewModel: CurrentConditionsVi
 }
 @Composable
 fun WeatherConditionIcon( url: String?) {
-    AsyncImage(model = url, contentDescription = "", modifier = Modifier.fillMaxWidth())
+    AsyncImage(model = url, contentDescription = "", modifier = Modifier.size(80.dp))
 }
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    WeatherappTheme {
-//        Greeting("Android")
-//    }
-//}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CurrentZipCode(viewModel: CurrentConditionsViewModel) {
+    val userInput = viewModel.userZip.observeAsState()
+    val showAlert = viewModel.showInvalidZipWarning.observeAsState(initial = false)
+    Column {
+        OutlinedTextField(
+            value = userInput.value.toString(),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = stringResource(id = R.string.label)
+                )
+            },
+            label = {
+                Text(
+                    text = stringResource(id = R.string.label),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.Gray
+                )
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.padding(12.dp),
+            onValueChange = { viewModel.userZip.value = it}
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Center) {
+            Spacer(modifier = Modifier)
+            Button(onClick = {
+                viewModel.showInvalidZipWarning.value = !viewModel.validateZipAndUpdate()
+
+            }) {
+                Text(text = stringResource(id = R.string.get_weather))
+            }
+            Spacer(modifier = Modifier)
+        }
+    }
+    if (showAlert.value) {
+        InvalidZipAlert {
+            viewModel.showInvalidZipWarning.value = false
+        }
+    }
+}
+
+@Composable
+fun InvalidZipAlert(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(onDismissRequest = onDismiss,
+        confirmButton = @Composable {
+            Button(onClick = onDismiss) {
+                Text("Ok")
+            }
+        },
+        title = @Composable {
+            Text(stringResource(id = R.string.title))
+        },
+        text = @Composable {
+            Text(stringResource(id = R.string.alert_body))
+        }
+    )
+
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CurrentWeatherPreview() {
+    val navController = rememberNavController()
+    WeatherappTheme {
+        CurrentWeather(navController = navController)
+    }
+}

@@ -17,4 +17,8 @@
     <string name="Back">Back</string>
     <string name="Percent">%</string>
     <string name="Pressure_unit">inHg</string>
+    <string name="title">ZIP Code Invalid</string>
+    <string name="alert_body">Re-enter ZIP Code.</string>
+    <string name="label">Zip Code:</string>
+    <string name="get_weather">Get Weather</string>
 </resources>
